@@ -1,4 +1,4 @@
-# Ocean
+# ocean
 Ocean Brasil Samsung
 
 Samsung Ocean is an initiative of Samsung in Brazil that offers technological training to the community and promotes the creation of technology-based companies (startups).
