@@ -1,0 +1,179 @@
+import keras # Importa a biblioteca Keras
+from keras.datasets import mnist # Base de Dados MNIST
+from tensorflow.python.keras import Sequential # Arquitetura da nossa rede neura
+from tensorflow.python.keras.layers import Dense, Dropout # Neurônio (base da rede) e Regularizador (evita overfitting)
+from tensorflow.compat.v1.keras.optimizers import RMSprop # Otimizador (back propagation)
+
+# Carregando os dados de treino e teste
+
+(x_treino, y_treino), (x_teste, y_teste) = mnist.load_data()
+
+# Após importar os dados, é importante analisar para vermos o que já temos no dataset e como está estruturado
+
+print("Quantidade de imagens para treino:", len(x_treino))
+
+print("Quantidade de imagens para teste:", len(x_teste))
+
+print("Tipo de x_treino:", type(x_treino))
+
+primeira_imagem = x_treino[0]
+
+representacao_primeira_imagem = y_treino[0]
+
+print("O que a imagem 0 representa:", representacao_primeira_imagem)
+
+print("Formato da primeira imagem:", primeira_imagem.shape, type(primeira_imagem.shape))
+
+print(primeira_imagem)
+
+import matplotlib.pyplot as plt
+
+indice = 1111
+
+print("A imagem representa:", y_treino[indice])
+
+plt.imshow(x_treino[indice], cmap=plt.cm.binary)
+
+# Fluxo para construção de rede neural
+# - Organizar a camada de entrada (input)
+# - Organizar a camada de saída (output)
+# - Estruturar a nossa rede neural
+# - Treinar o modelo
+# - Fazer as previsões
+
+# Achatando a matriz de pixels e transformando em uma única lista
+
+quantidade_treino = len(x_treino) # 60000
+quantidade_teste = len(x_teste) # 10000
+
+resolucao_imagem = x_treino[0].shape # (28, 28)
+resolucao_total = resolucao_imagem[0] * resolucao_imagem[1] # 28 * 28 = 784
+
+x_treino =x_treino.reshape(quantidade_treino, resolucao_total)
+x_teste =x_teste.reshape(quantidade_teste, resolucao_total)
+
+print("Quantidade de itens em x_treino_achatado[0]", len(x_treino[0]))
+
+# Como ficou x_treino_achatado[0]?
+print(x_treino[0])
+
+# Normalização dos dados
+
+# 255 vire 1
+# 127 vire 0.5
+# 0 vire 0
+# E assim por diante
+
+x_treino = x_treino.astype('float32') # converte toda a base de x-treino de uint_8 para float32
+x_teste = x_teste.astype('float32') # converte toda a base de x-treino de uint_8 para float32
+
+# dividindo todos os valores das bases por 255 e armazenando o resultado em x_treino e em x_teste
+x_treino /= 255 # que é o mesmo que dizer x_treino = x_treino / 255 
+x_teste /= 255
+
+print(x_treino[0][350], type(x_treino[0][350]))
+
+print(x_treino[0])
+
+# Preparação da camada de saída (output)
+
+# Quais são as possibilidades de saída? Números de 0 a 9
+# Quantos itens temos? 10 itens
+# Números -> [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+# Números 0 -> [1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+# Números 1 -> [0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
+# Números 9 -> [0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+
+valores_unicos = set(y_treino) # {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+print(valores_unicos)
+
+quantidade_valores_unicos = len(valores_unicos) # 10
+print(quantidade_valores_unicos)
+
+print("y_treino[0] antes:", y_treino[0])
+
+y_treino = keras.utils.to_categorical(y_treino, quantidade_valores_unicos)
+y_teste = keras.utils.to_categorical(y_teste, quantidade_valores_unicos)
+
+print("y_treino[0] depois:", y_treino[0])
+
+# Criando o modelo da rede neural
+
+model = Sequential()
+
+# Primeira hidden layer
+# 30 neurônios
+# Função de ativação: ReLU
+# Como estamos na primeira hidden layer, precisamos informar o formato da camada de entrada (input)
+
+model.add(Dense(30, activation='relu', input_shape=(resolucao_total,)))
+
+# Adicionamos um regularizador, que ajuda a evitar o overfitting
+# No caso, será o Dropout
+model.add(Dropout(0.2))
+
+# Segunda hidden layer
+# 20 neurônios
+# Função de ativação: ReLU
+
+model.add(Dense(20, activation='relu'))
+
+# Mais um regularizador depois da segunda hidden layer
+model.add(Dropout(0.2))
+
+# Finalizamos com a camada de saída (output), informando a quantidade de valores únicos que, no caso, é 10
+# Função de ativação: Como ReLU deve usada apenas nas hidden layers, iremos utilizar a função Softmax
+model.add(Dense(quantidade_valores_unicos, activation='softmax'))
+
+# Exibe o resumo do modelo criado
+model.summary()
+
+# Compila o modelo
+# Precisamos informar qual será:
+# Função de erro
+# Algoritmo de backpropagation
+# Dados para Treino (imagens normalizadas e labels categorizadas)
+# Dados para Teste (imagens normalizadas e labels categorizadas)
+# Quantidade de épocas que queremos rodar (sendo 1 época equivalente a analisar TODAS as imagens de treino)
+# Tamanho de cada 'batch'
+#   -> Supondo que temos 100 imagens
+#   -> 100 imagens pode ser mito pesado para processar de uma única vez
+#   -> Portanto, quebramos em 'batches' de 10 imagens, cada, e processamos 10 imagens por vez
+#   -> Geralmente, o tamanho dos batches deve ser potência de 2 (2, 4, 8, 16, 32, 64, 128, ...), para melhorar performance
+
+model.compile(loss='categorical_crossentropy',
+              optimizer=RMSprop(),
+              metrics=['accuracy'])
+
+# Treina o modelo
+
+history = model.fit(x_treino, y_treino,
+                    batch_size=128,
+                    epochs=10,
+                    verbose=1,
+                    validation_data=(x_teste, y_teste))
+                    
+# Fazendo nossas previsões
+
+indice = 1234
+
+print("Valor categórico em y_teste[indice]:", y_teste[indice])
+
+# Como o model.predict aceita mais de uma imagem ao mesmo tempo
+# e queremos apenas analisar uma imagem, precisamos fazer um reshape, em que [0, 0, 0, 0], vira [[0, 0, 0, 0]]
+imagem = x_teste[indice].reshape((1, resolucao_total))
+
+# Fazemos a previsão da imagem
+prediction = model.predict(imagem)
+print("Previsão:", prediction)
+
+# Transformar a previsão em algo que conseguimos entender de forma mais fácil
+
+import numpy as np
+# Convertemos a previsão que está em porcentagens, pegando o maior valor disponível
+prediction_class = np.argmax(prediction, axis=-1)
+print("Previsão ajustada:", prediction_class)
+
+# Recarregamos o MNIST e exibimos a imagem original usando o matplotlib carregado anteriormente
+(x_treino_img, y_treino_img), (x_teste_img, y_teste_img) = mnist.load_data()
+plt.imshow(x_teste_img[indice], cmap=plt.cm.binary)
