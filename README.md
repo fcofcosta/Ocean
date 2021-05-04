@@ -1,9 +1,8 @@
 # Ocean
 Ocean Brasil Samsung
-""
-O Samsung Ocean é uma iniciativa da Samsung no Brasil que oferece capacitação tecnológica à comunidade e fomenta a criação de empresas de base tecnológica (startups). 
-Com instalações modernas, o programa oferece gratuitamente treinamentos técnicos combinados com temas relacionados à usabilidade e ao empreendedorismo, 
-além do contato com especialistas da empresa e do mercado.
+
+Samsung Ocean is an initiative of Samsung in Brazil that offers technological training to the community and promotes the creation of technology-based companies (startups).
+With modern facilities, the program offers free technical training combined with topics related to usability and entrepreneurship,
+in addition to contact with company and market specialists.
 
 https://www.oceanbrasil.com/
-""
